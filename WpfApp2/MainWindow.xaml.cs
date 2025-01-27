@@ -157,12 +157,6 @@ namespace WpfApp
             {
                 StringBuilder title = new StringBuilder(256);
                 GetWindowText(hWnd, title, title.Capacity);
-
-                if (string.IsNullOrWhiteSpace(title.ToString()))
-                {
-                    return true;
-                }
-
                 RECT windowRect;
                 RECT windowFactRect;
                 if (IsWindowFullScreen(hWnd, out windowRect, out windowFactRect))
@@ -208,14 +202,14 @@ namespace WpfApp
 
                 const int tolerance = 10;
 
-                if (Math.Abs(windowWidth - screenWidth) <= tolerance &&
-                    Math.Abs(windowHeight - screenHeight) == 0)
+                if (Math.Abs(windowFactWidth - screenWidth) <= tolerance &&
+                    Math.Abs(windowFactHeight - screenHeight) == 0)
                 {
                     return true;
                 }
                 StringBuilder title = new StringBuilder(256);
                 GetWindowText(hWnd, title, title.Capacity);
-                fullScreenInfo.AppendLine($"非全屏窗口: {title}\r\n宽: {windowRect.Right - windowRect.Left}, 高: {windowRect.Bottom - windowRect.Top}\r\n实际宽高: {windowFactWidth}*{windowFactHeight}");
+                fullScreenInfo.AppendLine($"非全屏窗口: {title}\r\n宽: {windowWidth}, 高: {windowHeight}\r\n实际宽高: {windowFactWidth}*{windowFactHeight}");
             }
             return false;
         }
