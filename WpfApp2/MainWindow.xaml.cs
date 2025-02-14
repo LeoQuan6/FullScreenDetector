@@ -69,7 +69,12 @@ namespace WpfApp
         public static extern int GetWindowPlacement(IntPtr hWnd, ref WINDOWPLACEMENT lpwndpl);
 
 
-        // 判断前台窗口所在的显示器
+        /// <summary>
+        /// 获取当前窗口所在屏幕的屏幕大小
+        /// </summary>
+        /// <param name="windowRect">窗口位置, 用于定位窗口坐标</param>
+        /// <param name="WindowPoint">对外提供窗口左上角坐标位置</param>
+        /// <returns>屏幕的高度与宽度, 若未找到, 则返回0值的宽高</returns>
         public HeightAndWidth GetForegroundWindowMonitor(RECT windowRect, out POINT WindowPoint)
         {
             HeightAndWidth monitorhw = new();
@@ -97,7 +102,12 @@ namespace WpfApp
             return monitorhw;
         }
 
+        
         public static StringBuilder fullScreenInfo = new StringBuilder();
+        /// <summary>
+        /// 全屏窗口计数
+        /// </summary>
+        /// <returns>全屏窗口数量与窗口信息</returns>
         public (int fullScreenCount, string fullScreenInfo) GetFullScreenWindowCountAndInfo()
         {
             int fullScreenCount = 0;
@@ -118,6 +128,14 @@ namespace WpfApp
             return (fullScreenCount, fullScreenInfo.ToString());
         }
 
+        /// <summary>
+        /// 判断窗口是否全屏
+        /// </summary>
+        /// <param name="windowInfo">窗口信息</param>
+        /// <returns>该窗口为全屏 返回true
+        /// <para>该窗口不是全屏 返回false</para>
+        /// </returns>
+        /// <remarks>包含对Steam大屏模式的特殊判断</remarks>
         public bool IsWindowFullScreen(WindowInfo windowInfo)
         {
             fullScreenInfo.AppendLine($"窗口类名: {windowInfo.ClassName}");
@@ -152,7 +170,11 @@ namespace WpfApp
             return false;
         }
 
-        // 获取父级窗口的标题及进程
+        /// <summary>
+        /// 获取父级窗口的标题
+        /// </summary>
+        /// <param name="hWnd">窗口句柄</param>
+        /// <returns>窗口标题</returns>
         private string? GetOwnerWindowTitle(IntPtr hWnd)
         {
             // 使用 P/Invoke 获取父窗口句柄
@@ -167,6 +189,14 @@ namespace WpfApp
             return null;
         }
 
+        /// <summary>
+        /// 判断是否为暂时无法处理的特殊程序的特殊窗口
+        /// </summary>
+        /// <param name="windowInfo">窗口信息</param>
+        /// <returns>是特殊程序 返回true
+        /// <para>不是特殊程序 返回false</para>
+        /// </returns>
+        /// <remarks>包含 Alt+Tab 呼出的任务切换窗口 和 火绒的"安全分析工具"</remarks>
         private bool IsSpecialProgramWindow(WindowInfo windowInfo)
         {
             if (windowInfo.ClassName == "XamlExplorerHostIslandWindow" && windowInfo.ProcessName == "explorer")
@@ -180,6 +210,17 @@ namespace WpfApp
             return false;
         }
 
+        /// <summary>
+        /// 判断是否为普通资源管理器窗口
+        /// </summary>
+        /// <param name="windowInfo">窗口信息</param>
+        /// <returns>是资源管理器或其他程序的窗口 返回true
+        /// <para>独显直连情况下的桌面虚拟窗口 返回false</para>
+        /// </returns>
+        /// <remarks>如果是, 则正常识别是否全屏
+        /// <para>如果不是, 则判断为独显直连情况下的桌面虚拟窗口, 不为全屏</para>
+        /// <para>但不影响其他进程的窗口判断</para>
+        /// </remarks>
         private bool IsWinEtoExplorer(WindowInfo windowInfo)
         {
             if (windowInfo.ProcessName == "explorer")
@@ -196,6 +237,13 @@ namespace WpfApp
             return true;  // 应该是其他进程的窗口, 为了不影响正常判断, 默认返回true
         }
 
+        /// <summary>
+        /// 判断是否为 Steam 大屏模式
+        /// </summary>
+        /// <param name="windowInfo">窗口信息</param>
+        /// <returns>大屏模式则必定全屏 返回true
+        /// <para>如果不是Steam大屏模式或其他程序 返回false</para>
+        /// </returns>
         private bool IsSteamBigPictureMode(WindowInfo windowInfo)
         {
             if (
@@ -215,6 +263,11 @@ namespace WpfApp
             return false;
         }
 
+        /// <summary>
+        /// 获取窗口常用信息
+        /// </summary>
+        /// <param name="hWnd">窗口句柄</param>
+        /// <returns>WindowInfo 结构的窗口信息</returns>
         public WindowInfo GetWindowInfo(IntPtr hWnd)
         {
             WindowInfo windowInfo = new();
@@ -244,7 +297,11 @@ namespace WpfApp
             return windowInfo;
         }
 
-        // 获取窗口所属进程的辅助方法
+        /// <summary>
+        /// 获取窗口所属进程的辅助方法
+        /// </summary>
+        /// <param name="hWnd">窗口句柄</param>
+        /// <returns>窗口进程名称</returns>
         private string GetWindowProcessInfo(IntPtr hWnd)
         {
             int processId;
@@ -253,6 +310,11 @@ namespace WpfApp
             return process.ProcessName;
         }
 
+        /// <summary>
+        /// 获取窗口类名的辅助方法
+        /// </summary>
+        /// <param name="hWnd">窗口句柄</param>
+        /// <returns>窗口类名 string</returns>
         private string GetWindowClassName(IntPtr hWnd)
         {
             StringBuilder className = new StringBuilder(256);
@@ -260,17 +322,27 @@ namespace WpfApp
             return className.ToString();
         }
 
+        /// <summary>
+        /// 获取窗口标题的辅助方法
+        /// </summary>
+        /// <param name="hWnd">窗口句柄</param>
+        /// <returns>窗口标题 string</returns>
         private string GetWindowTitle(IntPtr hWnd)
         { 
             StringBuilder title = new StringBuilder(256);
             _ = GetWindowText(hWnd, title, title.Capacity);
             return title.ToString();
         }
+
         /// <summary>
         /// 获取窗口显示状态的辅助方法
         /// </summary>
-        /// <param name="hWnd"></param>
-        /// <returns></returns>
+        /// <param name="hWnd">窗口句柄</param>
+        /// <returns>
+        /// 返回1 则为正常显示
+        /// <para>返回2 则为最小化</para>
+        /// 返回3 则为最大化
+        /// <para>返回0 则为其他异常情况</para>
         private static int GetWindowState(IntPtr hWnd)
         {
             WINDOWPLACEMENT placement = new();
@@ -289,6 +361,9 @@ namespace WpfApp
         }
     }
 
+    /// <summary>
+    /// 定义一个点坐标的结构体
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct POINT
     {
@@ -296,6 +371,9 @@ namespace WpfApp
         public int Y;
     }
 
+    /// <summary>
+    /// 定义显示器信息结构体
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct MONITORINFO
     {
@@ -306,7 +384,7 @@ namespace WpfApp
     }
 
     /// <summary>
-    /// 通用窗口或屏幕 RECT结构体
+    /// 通用窗口或屏幕 矩形结构体
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct RECT
@@ -318,8 +396,11 @@ namespace WpfApp
     }
 
     /// <summary>
-    /// WINDOWPLACEMENT 结构体
+    /// 表示一个窗口的位置信息和显示状态，包括最小化、最大化、常规状态下的窗口位置、尺寸以及显示方式。
     /// </summary>
+    /// <remarks>
+    /// 该结构体通常用于获取或设置窗口的位置、大小、状态以及窗口的显示命令（例如最大化、最小化等）。它是 Windows API 中用于窗口管理的结构体。
+    /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
     public struct WINDOWPLACEMENT
     {
@@ -332,7 +413,7 @@ namespace WpfApp
     }
 
     /// <summary>
-    /// 用于定义窗口或显示器的宽高
+    /// 用于定义一个矩形(窗口或显示器)的宽高
     /// </summary>
     public struct HeightAndWidth
     {
@@ -361,7 +442,7 @@ namespace WpfApp
         public RECT WindowFactRect;
 
         /// <summary>
-        /// 窗口宽高
+        /// 窗口完整宽高
         /// </summary>
         public HeightAndWidth WindowRectHeightAndWidth;
 
